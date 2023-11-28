@@ -19,10 +19,11 @@ return new class extends Migration
             $table->string('direccion')->nullable();
             $table->string('dni')->unique();
             $table->string('telefono');
+            $table->string('foto_perfil')->nullable();
             $table->unsignedBigInteger('rol_id')->default(2);
             $table->timestamps();
 
-            $table->foreign('rol_id')->references('id')->on('Rol');
+            $table->foreign('rol_id')->references('id')->on('rols');
         });
     }
 

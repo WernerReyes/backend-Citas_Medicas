@@ -19,13 +19,15 @@ class AuthController extends Controller
             // Accedemos al rol de usuarios
             $userRole = Role::find($user->rol_id);
 
+            // Si el rol es USER_ROLE, generamos un nuevo token
             if ($userRole && $userRole->nombre === 'USER_ROLE') {
-                $token = TokenHelper::generateToken($request->user(), 240);
+                $token = TokenHelper::generateToken($request->user(), 3);
                 return response()->json([
                     'status' => 'true',
                     'token' => $token
                 ], 200);
-            } else {
+            } 
+            else {
                 Auth::logout();
                 return response()->json([
                     'status' => 'false',
@@ -35,7 +37,7 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'status' => 'true',
+            'status' => 'false',
             'message' => 'Credenciales inválidas'
         ], 401);
     }
@@ -48,15 +50,18 @@ class AuthController extends Controller
             'user' => $user
         ], 200);
     }
+    
 
     public function renovarToken(Request $request)
     {
         $user = $request->user;
-        $token = TokenHelper::generateToken($user, 240);
+        $token = TokenHelper::generateToken($user, 60);
         return response()->json([
             'status' => 'true',
             'token' => $token,
             'user' => $user
         ], 200);
     }
+
+    
 }

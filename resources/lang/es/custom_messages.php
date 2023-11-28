@@ -13,6 +13,8 @@ $customMessages = [
     'numeric' => 'El campo :attribute debe contener solo números',
     'confirmed' => 'La confirmación del campo :attribute no coincide.',
     'unique' => 'El campo :attribute ya esta en uso',
+    'image' => 'El campo :attribute debe ser una imagen.',
+    'mimes' => 'El campo :attribute debe ser un archivo de tipo: :values.',
     'password.regex' => 'La contraseña debe contener al menos 8 caracteres, una letra minúscula, una letra mayúscula y un número.',
 ];
 

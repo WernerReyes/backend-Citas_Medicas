@@ -76,16 +76,10 @@ class UserController extends Controller
         }
 
         try {
-            Log::info($request);
-            $usuario = new User();
-            $usuario->nombre = $request->input('nombre');
-            $usuario->correo = $request->input('correo');
-            $usuario->password = Hash::make($request->input('password'));
-            $usuario->direccion = $request->input('direccion');
-            $usuario->dni = $request->input('dni');
-            $usuario->telefono = $request->input('telefono');
-            // Obtiene el rol que se intenta asignar
-            $rolId = $request->input('rol_id');
+            Log::info($request->rol_id);
+
+            $rolId = $request->rol_id;
+
             if ($rolId) {
                 $rol = Role::find($rolId);
                 if (!$rol) {
@@ -94,14 +88,24 @@ class UserController extends Controller
                         'message' => 'Rol no encontrado'
                     ], 404);
                 }
-                $usuario->rol_id = $rolId;
             }
-            $usuario->save();
+
+            $user = User::create([
+                'nombre' => $request->nombre,
+                'correo' => $request->correo,
+                'password' => Hash::make($request->password),
+                'direccion' => $request->direccion,
+                'dni' => $request->dni,
+                'telefono' => $request->telefono,
+                'rol_id' => $rolId ?? 2
+            ]);
+
+            $user->save();
 
             return response()->json([
                 'status' => 'true',
                 'message' => 'Cuenta creada correctamente',
-                'user' => $usuario
+                'user' => $user
             ], 200);
         } catch (Exception $error) {
 
@@ -117,9 +121,9 @@ class UserController extends Controller
         $customMessages = require resource_path('lang/es/custom_messages.php');
 
         try {
-            $usuario = User::find($id);
+            $user = User::find($id);
 
-            if (!$usuario) {
+            if (!$user) {
                 return response()->json([
                     'status' => 'false',
                     'message' => 'Usuario no encontrado'
@@ -141,17 +145,18 @@ class UserController extends Controller
                 return response()->json(['errors' => $errors], 422);
             }
 
-            $usuario->nombre = $request->input('nombre');
-            $usuario->correo = $request->input('correo');
-            $usuario->password = Hash::make($request->input('password'));
-            $usuario->direccion = $request->input('direccion');
-            $usuario->dni = $request->input('dni');
-            $usuario->telefono = $request->input('telefono');
-            $usuario->save();
+            $user->nombre = $request->nombre;
+            $user->correo = $request->correo;
+            $user->password = Hash::make($request->password);
+            $user->direccion = $request->direccion;
+            $user->dni = $request->dni;
+            $user->telefono = $request->telefono;
+            $user->save();
 
             return response()->json([
                 'status' => 'true',
                 'message' => 'Datos actualizados correctamente',
+                'user' => $user
             ], 200);
         } catch (Exception $error) {
             return response()->json([
@@ -178,6 +183,7 @@ class UserController extends Controller
             return response()->json([
                 'status' => 'true',
                 'message' => 'Usuario: ' . $user->nombre . ' eliminado correctamente',
+                'user' => $user
             ], 200);
         } catch (Exception $error) {
             return response()->json([
