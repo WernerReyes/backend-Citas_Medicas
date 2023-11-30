@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="./css/admin.css">
+</head>
+<body style="background-color: #DADADA;">
+    
+<div>
+  <div class="row">
+    <div class="col-3">
+      <div class="sidebar">
+        <img src="./img/logo_blanco.png" alt="">
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <a class="nav-link active" href="./admin.html">Panel de administrador</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./citas.html">Gestion de citas</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./paciente.html">Gestion de pacientes</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./medicos.html">Gestion de medicos</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./especialidad.html">Gestionar especialidades</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">ver perfil</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./ingreso.html">Cerrar session</a>
+          </li>
+        </ul>
+    </div>
+    </div>
+
+      <div class="col-8 aling-itens-center">
+        <div class="container">
+          <div class=" " >
+              <canvas id="myChart" width="400px" height="100px"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+
+        
+    <div class="container col-8">
+      <div class="text-center mt-5 mb-5">
+        <h1 class="mb-4">Usuarios Recién Ingresados</h1>
+        <div class="content">
+          <table class="table table-sm table-bordered ps-0 pe-0">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Fecha de Ingreso</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>Usuario 1</td>
+                <td>usuario1@example.com</td>
+                <td>Administrador</td>
+                <td>2023-01-01</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>Usuario 2</td>
+                <td>usuario2@example.com</td>
+                <td>Usuario Normal</td>
+                <td>2023-01-02</td>
+              </tr>
+              <!-- Agrega más filas según sea necesario -->
+            </tbody>
+          </table>
+        </div>
+    </div>
+</div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        const labels = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio'];
+        const data = {
+          labels: labels,
+          datasets: [{
+            label: 'My First Dataset',
+            data: [65, 59, 80, 81, 56, 55, 40],
+            backgroundColor: [
+              'rgba(255, 99, 132, 0.2)',
+              'rgba(255, 159, 64, 0.2)',
+              'rgba(255, 205, 86, 0.2)',
+              'rgba(75, 192, 192, 0.2)',
+              'rgba(54, 162, 235, 0.2)',
+              'rgba(153, 102, 255, 0.2)',
+              'rgba(201, 203, 207, 0.2)'
+            ],
+            borderColor: [
+              'rgb(255, 99, 132)',
+              'rgb(255, 159, 64)',
+              'rgb(255, 205, 86)',
+              'rgb(75, 192, 192)',
+              'rgb(54, 162, 235)',
+              'rgb(153, 102, 255)',
+              'rgb(201, 203, 207)'
+            ],
+            borderWidth: 1
+          }]
+        };
+      
+        const ctx = document.getElementById('myChart').getContext('2d');
+        const myChart = new Chart(ctx, {
+          type: 'bar',
+          data: data,
+        });
+      </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+</body>
+</html>
