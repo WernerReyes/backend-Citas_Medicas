@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -11,13 +9,13 @@ use Illuminate\Notifications\Notifiable;
 use App\Models\Role;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable implements MustVerifyEmail
+class Doctor extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable, HasApiTokens;
 
-    protected $table = 'users';
+    protected $table = 'doctors';
     protected $primaryKey = 'id';
-    protected $fillable = ['id','nombre', 'apellido', 'correo', 'password', 'direccion','dni','telefono','rol_id','create_at','update_at'];
+    protected $fillable = ['id','nombre', 'apellido', 'correo', 'password', 'direccion','dni','telefono','rol_id', 'especialidad_id','create_at','update_at'];
 
     /**
      * Indicates if the IDs are auto-incrementing.
@@ -32,6 +30,11 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var string
      */
     protected $keyType = 'string';
+
+    public function specialy()
+    {
+        return $this->belongsTo(Specialty::class, 'especialidad_id');
+    }
 
     public function rol()
     {

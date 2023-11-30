@@ -4,9 +4,11 @@ namespace App\Helpers;
 
 class TokenHelper
 {
-    public static function generateToken($user, $expiration)
+    public static function generateToken($user)
     {
         $tokenName = env('TOKEN_NAME');      
-        return $user->createToken($tokenName, ['expires_in' => $expiration])->plainTextToken;
+        $token = $user->createToken($tokenName)->plainTextToken;
+
+        return $token;
     }
 }

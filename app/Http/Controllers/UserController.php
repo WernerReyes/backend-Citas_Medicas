@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ValidationHelper;
 use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Exception;
@@ -58,26 +60,21 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
-        $customMessages = require resource_path('lang/es/custom_messages.php');
-
         $rules = [
             'nombre' => 'required',
-            'correo' => 'required|email|unique:usuarios,correo',
+            'apellido' => 'required',
+            'correo' => 'required|email|unique:users,correo',
             'password' => ['required', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/'],
-            'dni' => 'required|min:8|max:8|unique:usuarios,dni',
+            'dni' => 'required|min:8|max:8|unique:users,dni',
             'telefono' => 'required|min:9|max:9'
         ];
 
-        $validator = Validator::make($request->all(), $rules, $customMessages);
-
-        if ($validator->fails()) {
-            $errors  = collect($validator->errors());
-            return response()->json(['errors' => $errors], 422);
+        $errors = ValidationHelper::validate($request, $rules);
+        
+        if($errors){
+            return $errors;
         }
-
         try {
-            Log::info($request->rol_id);
-
             $rolId = $request->rol_id;
 
             if ($rolId) {
@@ -91,7 +88,9 @@ class UserController extends Controller
             }
 
             $user = User::create([
+                'id' => (string) Str::uuid(),
                 'nombre' => $request->nombre,
+                'apellido' => $request->apellido,
                 'correo' => $request->correo,
                 'password' => Hash::make($request->password),
                 'direccion' => $request->direccion,
@@ -118,7 +117,6 @@ class UserController extends Controller
 
     public function update(Request $request, $id)
     {
-        $customMessages = require resource_path('lang/es/custom_messages.php');
 
         try {
             $user = User::find($id);
@@ -132,17 +130,17 @@ class UserController extends Controller
 
             $rules = [
                 'nombre' => 'required',
-                'correo' => 'required|email|unique:usuarios,correo,' . $id,
+                'apellido' => 'required',
+                'correo' => 'required|email|unique:users,correo,' . $id,
                 'password' => ['required', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/'],
-                'dni' => 'required|min:8|max:8|unique:usuarios,dni,' . $id,
+                'dni' => 'required|min:8|max:8|unique:users,dni,' . $id,
                 'telefono' => 'required|min:9|max:9'
             ];
 
-            $validator = Validator::make($request->all(), $rules, $customMessages);
-
-            if ($validator->fails()) {
-                $errors  = collect($validator->errors());
-                return response()->json(['errors' => $errors], 422);
+            $errors = ValidationHelper::validate($request, $rules);
+        
+            if($errors){
+                return $errors;
             }
 
             $user->nombre = $request->nombre;

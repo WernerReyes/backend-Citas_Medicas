@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class EnsureTokenIsValid
 {
@@ -18,8 +19,10 @@ class EnsureTokenIsValid
     {
         $token = $request->header('Authorization');
 
+        Log::info(Auth::guard('sanctum')->user());
+
         if (!$token || !Auth::guard('sanctum')->user()) {
-            return response()->json(['message' => 'Token inválido o vencido'], 401);
+            return response()->json(['message' => 'Token inválido'], 401);
         }
 
         $request->merge(['user' => Auth::guard('sanctum')->user()]);

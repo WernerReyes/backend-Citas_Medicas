@@ -11,20 +11,22 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('doctors', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('nombre');
             $table->string('apellido');
+            $table->string('dni')->unique();
             $table->string('correo')->unique();
             $table->string('password');
             $table->string('direccion')->nullable();
-            $table->string('dni')->unique();
             $table->string('telefono');
             $table->string('img')->nullable();
-            $table->unsignedBigInteger('rol_id')->default(2);
-            $table->timestamps();
+            $table->unsignedBigInteger('rol_id')->default(3);
+            $table->uuid('especialidad_id');
 
             $table->foreign('rol_id')->references('id')->on('rols');
+            $table->foreign('especialidad_id')->references('id')->on('specialties');
+            $table->timestamps();
         });
     }
 
@@ -33,6 +35,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('usuarios');
+        Schema::dropIfExists('medical_appointments');
     }
 };

@@ -2,20 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\FoldersHelper;
 use App\Helpers\ValidationHelper;
+use App\Helpers\UploadHelper;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Http\Request;
-use App\Models\User;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class UploadController extends Controller
 {
-    public function store(Request $request, $folder)
+    public function store(Request $request, $folder, $model, $id)
     {
-
-        // Identificamos al usuario
-        $user = $request->user;
-
         // Obtenemos la imagen
         $file = $request->file('file');
 
@@ -37,26 +35,29 @@ class UploadController extends Controller
         if ($response) {
             return $response;
         }
+
         try {
+            // Obtenemos el modelo [user, specialty] que deseamos cargar el folder
+            $modelo = FoldersHelper::modeloFolders($id, $model);
 
-            // Nombre del disrectorio basado en el id del usuario
-            $directory = 'uploads/' . $user->id . '/' . $folder;
+            // Nombre del directorio basado en el id del modelo
+            $directory = 'uploads/' . $model . '/' . $modelo->id . '/' . $folder;
 
-            $uploadedFile = Cloudinary::upload($file->getRealPath(), [
-                'folder' => $directory,
-            ]);
+            // $uploadedFile = Cloudinary::upload($file->getRealPath(), [
+            //     'folder' => $directory,
+            // ]);
 
-            // Obtenemos la url de la imagen
-            $uploadedFileUrl = $uploadedFile->getSecurePath();
+            // // Obtenemos la url de la imagen
+            // $uploadedFileUrl = $uploadedFile->getSecurePath();
 
             // Guardamos la url de la imagen en la base de datos
-            $user->foto_perfil = $uploadedFileUrl;
-            $user->save();
+            $modelo->img = UploadHelper::upload($directory, $file);
+            $modelo->save();
 
             return response()->json([
                 'status' => 'true',
                 'message' => ($folder === 'images' ? 'Imagen subida' : 'Documento subido') . ' exitosamente',
-                'user' => $user
+                'user' => $modelo
             ], 200);
         } catch (Exception $error) {
             return response()->json([
@@ -66,69 +67,61 @@ class UploadController extends Controller
         }
     }
 
-    public function update(Request $request, $folder, $id)
+    public function update(Request $request, $folder, $model, $id)
     {
+        // Obtenemos la imagen
+        $file = $request->file('file');
+
+        if (!$file) {
+            return response()->json([
+                'status' => 'false',
+                'message' => 'No se envió ninguna archivo'
+            ], 400);
+        }
+
+        $rules = [
+            'image' => ['file' => 'required|image|mimes:jpeg,png,jpg|max:2048'],
+            'document' => ['file' => 'required|mimes:pdf|max:2048']
+        ];
+
+        $validationRules = ($folder === 'images') ? $rules['image'] : $rules['document'];
+
+        $response = ValidationHelper::validate($request, $validationRules);
+
+        if ($response) {
+            return $response;
+        }
+
         try {
+            // Obtenemos el modelo [user, specialty] que deseamos cargar el folder
+            $modelo = FoldersHelper::modeloFolders($id, $model);
 
-            $user = User::find($id);
+            // Nombre del directorio basado en el id del modelo
+            $directory = 'uploads/' . $model . '/' . $modelo->id . '/' . $folder;
 
-            if (!$user) {
-                return response()->json([
-                    'status' => 'false',
-                    'message' => 'Usuario no encontrado'
-                ], 404);
-            }
-
-            // Obtenemos la imagen
-            $file = $request->file('file');
-
-            if (!$file) {
-                return response()->json([
-                    'status' => 'false',
-                    'message' => 'No se envió ninguna imagen'
-                ], 400);
-            }
-
-            $rules = [
-                'image' => ['file' => 'required|image|mimes:jpeg,png,jpg|max:2048'],
-                'document' => ['file' => 'required|mimes:pdf|max:2048']
-            ];
-
-            $validationRules = ($folder === 'images') ? $rules['image'] : $rules['document'];
-            $response = ValidationHelper::validate($request, $validationRules);
-
-            if ($response) {
-                return $response;
-            }
-
-            if ($user->foto_perfil) {
-                $nombreArr = explode('/', $user->foto_perfil);
-                $nombre  = $nombreArr[count($nombreArr) - 1];
-                list($public_id) = explode('.', $nombre);
+            if ($modelo->img) {
+                $public_id = pathinfo($modelo->img, PATHINFO_FILENAME);
+                Log::info($public_id);
 
                 // Borramos la imagen existente
-                Cloudinary::destroy($public_id);
+                $response = Cloudinary::destroy($directory . '/' . $public_id);
             }
 
-            $directory = 'uploads/' . $user->id . '/' . $folder;
+            // $uploadedFile = Cloudinary::upload($file->getRealPath(), [
+            //     'folder' => $directory,
+            // ]);
 
-            // Subimos la nueva imagen con el mismo public_id
-            $uploadedFile = Cloudinary::upload($file->getRealPath(), [
-                'folder' => $directory,
-                'public_id' => $public_id
-            ]);
-
-            // Obtenemos la url de la imagen
-            $uploadedFileUrl = $uploadedFile->getSecurePath();
+            // // Obtenemos la url de la imagen
+            // $uploadedFileUrl = $uploadedFile->getSecurePath();
 
             // Guardamos la url de la imagen en la base de datos
-            $user->foto_perfil = $uploadedFileUrl;
-            $user->save();
+            $modelo->img = UploadHelper::upload($directory, $file);
+            $modelo->save();
 
             return response()->json([
                 'status' => 'true',
-                'message' => ($folder === 'images' ? 'Imagen ' : 'Documento ') . 'actualizado exitosamente',
-                'user' => $user
+                'message' => ($folder === 'images' ? 'Imagen ' : 'Documento ') . 'editado exitosamente',
+                'user' => $modelo
             ], 200);
         } catch (Exception $error) {
             return response()->json([
@@ -137,4 +130,5 @@ class UploadController extends Controller
             ], 500);
         }
     }
+
 }

@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\UploadHelper;
 use App\Models\Specialty;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use App\Helpers\ValidationHelper;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class SpecialtyController extends Controller
 {
@@ -53,23 +57,36 @@ class SpecialtyController extends Controller
     }
 
     public function store(Request $request)
-    {
-        try {
-            $validator = Validator::make($request->all(), [
-                'nombre' => 'required|string|max:255',
-                'descripcion' => 'required|string|max:255',
-            ]);
+    
+    {   
+        // Obtenemos la imagen
+        $file = $request->file('file');
 
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => 'false',
-                    'message' => $validator->errors()
-                ], 400);
+        if (!$file) {
+            return response()->json([
+                'status' => 'false',
+                'message' => 'No se envió ninguna archivo'
+            ], 400);
+        }
+
+        try {
+
+            $response = ValidationHelper::validate($request, [
+                'nombre' => 'required|string|max:255|unique:specialties,nombre',
+                'descripcion' => 'required|string|max:255',
+                'img' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            ]);
+            if ($response) {
+                return $response;
             }
+            
+            $id = (string) Str::uuid();
 
             $specialty = Specialty::create([
-                'nombre' => $request->nombre,
+                'id' => $id,
+                'nombre' => strtoupper(trim($request->nombre)),
                 'descripcion' => $request->descripcion,
+                'img' => UploadHelper::upload('uploads/specialties/' . $id . '/images', $file),
             ]);
             $specialty->save();
 
@@ -86,19 +103,9 @@ class SpecialtyController extends Controller
         }
     }
 
-    public function update(Request $request) {
+    public function update(Request $request)
+    {
         try {
-            $validator = Validator::make($request->all(), [
-                'nombre' => 'required|string|max:255',
-                'descripcion' => 'required|string|max:255',
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => 'false',
-                    'message' => $validator->errors()
-                ], 400);
-            }
 
             $specialty = Specialty::find($request->id);
 
@@ -109,7 +116,15 @@ class SpecialtyController extends Controller
                 ], 404);
             }
 
-            $specialty->nombre = $request->nombre;
+            $response = ValidationHelper::validate($request, [
+                'nombre' => 'required|string|max:255|unique:specialties,nombre',
+                'descripcion' => 'required|string|max:255',
+            ]);
+            if ($response) {
+                return $response;
+            }
+
+            $specialty->nombre = strtoupper(trim($request->nombre));
             $specialty->descripcion = $request->descripcion;
             $specialty->save();
 
@@ -126,7 +141,8 @@ class SpecialtyController extends Controller
         }
     }
 
-    public function destroy($id) {
+    public function destroy($id)
+    {
         try {
             $specialty = Specialty::find($id);
 
@@ -151,6 +167,4 @@ class SpecialtyController extends Controller
             ], 500);
         }
     }
-
 }
-
