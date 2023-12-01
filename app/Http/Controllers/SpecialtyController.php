@@ -60,21 +60,21 @@ class SpecialtyController extends Controller
     
     {   
         // Obtenemos la imagen
-        $file = $request->file('file');
+        // $file = $request->file('file');
 
-        if (!$file) {
-            return response()->json([
-                'status' => 'false',
-                'message' => 'No se envió ninguna archivo'
-            ], 400);
-        }
+        // if (!$file) {
+        //     return response()->json([
+        //         'status' => 'false',
+        //         'message' => 'No se envió ninguna archivo'
+        //     ], 400);
+        // }
 
         try {
 
             $response = ValidationHelper::validate($request, [
                 'nombre' => 'required|string|max:255|unique:specialties,nombre',
                 'descripcion' => 'required|string|max:255',
-                'img' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+                // 'img' => 'required|image|mimes:jpeg,png,jpg|max:2048',
             ]);
             if ($response) {
                 return $response;
@@ -86,7 +86,7 @@ class SpecialtyController extends Controller
                 'id' => $id,
                 'nombre' => strtoupper(trim($request->nombre)),
                 'descripcion' => $request->descripcion,
-                'img' => UploadHelper::upload('uploads/specialties/' . $id . '/images', $file),
+                // 'img' => UploadHelper::upload('uploads/specialties/' . $id . '/images', $file),
             ]);
             $specialty->save();
 

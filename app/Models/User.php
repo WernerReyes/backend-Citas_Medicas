@@ -17,7 +17,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     protected $table = 'users';
     protected $primaryKey = 'id';
-    protected $fillable = ['id','nombre', 'apellido', 'correo', 'password', 'direccion','dni','telefono','rol_id','create_at','update_at'];
+    protected $fillable = ['id','nombre', 'apellido', 'correo', 'password', 'direccion','dni','telefono','rol_id','img','create_at','update_at'];
 
     /**
      * Indicates if the IDs are auto-incrementing.

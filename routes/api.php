@@ -1,10 +1,11 @@
 <?php
 
+use App\Http\Controllers\AdministratorControlller;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\SpecialtyController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\UserController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 
@@ -34,12 +35,20 @@ Route::prefix('/user')->group(function () {
   Route::delete('/{id}',[UserController::class, 'destroy'])->middleware('auth.sanctum');
 });
 
-Route::prefix('/doctors')->group(function () {
+Route::prefix('/doctor')->group(function () {
   Route::get('/', [DoctorController::class, 'index']);
   Route::get('/{id}', [DoctorController::class, 'show']);
   Route::post('/', [DoctorController::class, 'store']);
   Route::put('/{id}',[DoctorController::class, 'update'])->middleware('auth.sanctum');
   Route::delete('/{id}',[DoctorController::class, 'destroy'])->middleware('auth.sanctum');
+});
+
+Route::prefix('/administrator')->group(function () {
+  Route::get('/', [AdministratorControlller::class, 'index']);
+  Route::get('/{id}', [AdministratorControlller::class, 'show']);
+  Route::post('/', [AdministratorControlller::class, 'store']);
+  Route::put('/{id}',[AdministratorControlller::class, 'update'])->middleware('auth.sanctum');
+  Route::delete('/{id}',[AdministratorControlller::class, 'destroy'])->middleware('auth.sanctum');
 });
 
 Route::prefix('/medical-appointment')->group(function () {

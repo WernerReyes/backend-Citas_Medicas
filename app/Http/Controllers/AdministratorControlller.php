@@ -2,28 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use App\Helpers\ValidationHelper;
-use App\Models\Role;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
+use App\Helpers\ValidationHelper;
+use App\Models\Administrator;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Exception;
 
-class UserController extends Controller
+
+class AdministratorControlller extends Controller
 {
     public function index(Request $request)
     {
-        $limitUsers = $request->input('limit', 10);
+        $limitAdministrators = $request->input('limit', 10);
         try {
-            $users = User::limit($limitUsers)->get();
+            $administrators = Administrator::limit($limitAdministrators)->get();
             return response()->json([
                 'status' => 'true',
                 'message' => 'Consulta exitosa',
-                'users' => $users,
-                'total_users' => $users->count()
+                'administrators' => $administrators,
+                'total_administrators' => $administrators->count()
             ], 200);
         } catch (Exception $error) {
             return response()->json([
@@ -36,19 +34,19 @@ class UserController extends Controller
     public function show($id)
     {
         try {
-            $user = User::find($id);
+            $administrator = Administrator::find($id);
 
-            if (!$user) {
+            if (!$administrator) {
                 return response()->json([
                     'status' => 'false',
-                    'message' => 'Usuario no encontrado'
+                    'message' => 'Administrador no encontrado'
                 ], 404);
             }
 
             return response()->json([
                 'status' => 'true',
                 'message' => 'Consulta exitosa',
-                'user' => $user
+                'administrator' => $administrator
             ], 200);
         } catch (Exception $error) {
             return response()->json([
@@ -75,8 +73,8 @@ class UserController extends Controller
             return $errors;
         }
         try {
-            
-            $user = User::create([
+          
+            $administrator = Administrator::create([
                 'id' => (string) Str::uuid(),
                 'nombre' => $request->nombre,
                 'apellido' => $request->apellido,
@@ -87,12 +85,12 @@ class UserController extends Controller
                 'telefono' => $request->telefono,
             ]);
 
-            $user->save();
+            $administrator->save();
 
             return response()->json([
                 'status' => 'true',
                 'message' => 'Cuenta creada correctamente',
-                'user' => $user
+                'administrator' => $administrator
             ], 200);
         } catch (Exception $error) {
 
@@ -107,9 +105,9 @@ class UserController extends Controller
     {
 
         try {
-            $user = User::find($id);
+            $administrator = Administrator::find($id);
 
-            if (!$user) {
+            if (!$administrator) {
                 return response()->json([
                     'status' => 'false',
                     'message' => 'Usuario no encontrado'
@@ -119,9 +117,9 @@ class UserController extends Controller
             $rules = [
                 'nombre' => 'required',
                 'apellido' => 'required',
-                'correo' => 'required|email|unique:users,correo,' . $id . '|unique:doctors,correo|unique:administrators,correo',
+                'correo' => 'required|email|unique:administrator,correo,' . $id . '|unique:doctors,correo|unique:users,correo',
                 'password' => ['required', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/'],
-                'dni' => 'required|min:8|max:8|unique:users,dni,' . $id . '|unique:doctors,dni|unique:administrators,dni',
+                'dni' => 'required|min:8|max:8|unique:administrator,dni,' . $id . '|unique:doctors,dni|unique:users,dni',
                 'telefono' => 'required|min:9|max:9'
             ];
 
@@ -131,18 +129,18 @@ class UserController extends Controller
                 return $errors;
             }
 
-            $user->nombre = $request->nombre;
-            $user->correo = $request->correo;
-            $user->password = Hash::make($request->password);
-            $user->direccion = $request->direccion;
-            $user->dni = $request->dni;
-            $user->telefono = $request->telefono;
-            $user->save();
+            $administrator->nombre = $request->nombre;
+            $administrator->correo = $request->correo;
+            $administrator->password = Hash::make($request->password);
+            $administrator->direccion = $request->direccion;
+            $administrator->dni = $request->dni;
+            $administrator->telefono = $request->telefono;
+            $administrator->save();
 
             return response()->json([
                 'status' => 'true',
                 'message' => 'Datos actualizados correctamente',
-                'user' => $user
+                'adm$administrator' => $administrator
             ], 200);
         } catch (Exception $error) {
             return response()->json([
@@ -155,21 +153,21 @@ class UserController extends Controller
     public function destroy($id)
     {
         try {
-            $user = User::find($id);
+            $administrator = Administrator::find($id);
 
-            if (!$user) {
+            if (!$administrator) {
                 return response()->json([
                     'status' => 'false',
-                    'message' => 'Usuario no encontrado'
+                    'message' => 'Administrador no encontrado'
                 ], 404);
             }
 
-            $user->delete();
+            $administrator->delete();
 
             return response()->json([
                 'status' => 'true',
-                'message' => 'Usuario: ' . $user->nombre . ' eliminado correctamente',
-                'user' => $user
+                'message' => 'Administrador: ' . $administrator->nombre . ' eliminado correctamente',
+                'administrator' => $administrator
             ], 200);
         } catch (Exception $error) {
             return response()->json([
@@ -178,4 +176,5 @@ class UserController extends Controller
             ], 500);
         }
     }
+
 }

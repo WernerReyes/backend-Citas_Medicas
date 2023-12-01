@@ -23,7 +23,7 @@ class AuthController extends Controller
 
                 // Si el rol es USER_ROLE, generamos un nuevo token
                 if ($userRole && $userRole->nombre === 'USER_ROLE') {
-                    $token = TokenHelper::generateToken($request->user());
+                    $token = TokenHelper::generateToken($user);
                     return response()->json([
                         'status' => 'true',
                         'token' => $token
@@ -53,17 +53,18 @@ class AuthController extends Controller
         try {
             $credentials = $request->only('correo', 'password');
 
-            if (Auth::attempt($credentials)) {
-                $user = $request->user();
+            if (Auth::guard('doctor')->attempt($credentials) || Auth::guard('admin')->attempt($credentials)) {
+                $personal = Auth::guard('doctor')->user() ?? Auth::guard('admin')->user();
+              
                 // Accedemos al rol de usuarios
-                $userRole = Role::find($user->rol_id);
+                $personalRole = Role::find($personal->rol_id);
     
                 // Si el rol es USER_ROLE, generamos un nuevo token
-                if ($userRole && $userRole->nombre === 'MEDICAL_ROLE' || $userRole->nombre === 'ADMIN_ROLE') {
-                    $token = TokenHelper::generateToken($request->user());
+                if ($personalRole && ($personalRole->nombre === 'MEDICAL_ROLE' || $personalRole->nombre === 'ADMIN_ROLE')) {
+                    $token = TokenHelper::generateToken($personal);
                     return response()->json([
                         'status' => 'true',
-                        'rol' => $userRole->nombre,
+                        'rol' => $personalRole->nombre,
                         'token' => $token
                     ], 200);
                 }
@@ -77,7 +78,7 @@ class AuthController extends Controller
     
             return response()->json([
                 'status' => 'false',
-                'message' => 'Credenciales inválidas'
+                'message' => 'No tienes permiso para acceder'
             ], 401);
         } catch(Exception $error) {
             return response()->json([

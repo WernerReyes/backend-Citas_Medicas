@@ -2,28 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use App\Helpers\ValidationHelper;
-use App\Models\Role;
+use App\Helpers\UploadHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Hash;
-use App\Models\User;
+use App\Helpers\ValidationHelper;
+use App\Models\Doctor;
+use App\Models\Specialty;
 use Exception;
+use Illuminate\Support\Facades\Hash;
 
-class UserController extends Controller
+class DoctorController extends Controller
 {
     public function index(Request $request)
     {
-        $limitUsers = $request->input('limit', 10);
+        $limitDoctors = $request->input('limit', 10);
         try {
-            $users = User::limit($limitUsers)->get();
+            $doctors = Doctor::limit($limitDoctors)->get();
             return response()->json([
                 'status' => 'true',
                 'message' => 'Consulta exitosa',
-                'users' => $users,
-                'total_users' => $users->count()
+                'doctors' => $doctors,
+                'total_doctors' => $doctors->count()
             ], 200);
         } catch (Exception $error) {
             return response()->json([
@@ -36,19 +36,19 @@ class UserController extends Controller
     public function show($id)
     {
         try {
-            $user = User::find($id);
+            $doctor = Doctor::find($id);
 
-            if (!$user) {
+            if (!$doctor) {
                 return response()->json([
                     'status' => 'false',
-                    'message' => 'Usuario no encontrado'
+                    'message' => 'Doctor no encontrado'
                 ], 404);
             }
 
             return response()->json([
                 'status' => 'true',
                 'message' => 'Consulta exitosa',
-                'user' => $user
+                'doctor' => $doctor
             ], 200);
         } catch (Exception $error) {
             return response()->json([
@@ -60,39 +60,56 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
+        // Obtenemos la imagen en caso la suba [Opcional]
+        $file = $request->file('file');
+
         $rules = [
             'nombre' => 'required',
             'apellido' => 'required',
-            'correo' => 'required|email|unique:users,correo|unique:doctors,correo|unique:administrators,correo',
+            'correo' => 'required|email|unique:doctors,correo|unique:users,correo|unique:administrators,correo',
             'password' => ['required', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/'],
-            'dni' => 'required|min:8|max:8|unique:users,dni|unique:doctors,dni|unique:administrators,dni',
-            'telefono' => 'required|min:9|max:9'
+            'dni' => 'required|min:8|max:8|unique:doctors,dni|unique:users,dni|unique:administrators,dni',
+            'telefono' => 'required|min:9|max:9',
+            'especialidad_id' => 'required'
         ];
 
         $errors = ValidationHelper::validate($request, $rules);
-        
-        if($errors){
+
+        if ($errors) {
             return $errors;
         }
         try {
-            
-            $user = User::create([
-                'id' => (string) Str::uuid(),
+
+            $specialty = Specialty::find($request->especialidad_id);
+
+            if (!$specialty) {
+                return response()->json([
+                    'status' => 'false',
+                    'message' => 'Especialidad no encontrada'
+                ], 404);
+            }
+
+            $id = (string) Str::uuid();
+
+            $doctor = Doctor::create([
+                'id' => $id,
                 'nombre' => $request->nombre,
                 'apellido' => $request->apellido,
                 'correo' => $request->correo,
                 'password' => Hash::make($request->password),
                 'direccion' => $request->direccion,
                 'dni' => $request->dni,
+                'img' => ($file) ? UploadHelper::upload('uploads/doctors/' . $id . '/images', $file) : null,
                 'telefono' => $request->telefono,
+                'especialidad_id' => $request->especialidad_id,
             ]);
 
-            $user->save();
+            $doctor->save();
 
             return response()->json([
                 'status' => 'true',
                 'message' => 'Cuenta creada correctamente',
-                'user' => $user
+                'doctor' => $doctor
             ], 200);
         } catch (Exception $error) {
 
@@ -107,42 +124,54 @@ class UserController extends Controller
     {
 
         try {
-            $user = User::find($id);
+            $doctor = Doctor::find($id);
 
-            if (!$user) {
+            if (!$doctor) {
                 return response()->json([
                     'status' => 'false',
-                    'message' => 'Usuario no encontrado'
+                    'message' => 'Doctor no encontrado'
                 ], 404);
             }
 
             $rules = [
                 'nombre' => 'required',
                 'apellido' => 'required',
-                'correo' => 'required|email|unique:users,correo,' . $id . '|unique:doctors,correo|unique:administrators,correo',
+                'correo' => 'required|email|unique:doctors,correo,' . $id . '|unique:users,correo|unique:administrators,correo',
                 'password' => ['required', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/'],
-                'dni' => 'required|min:8|max:8|unique:users,dni,' . $id . '|unique:doctors,dni|unique:administrators,dni',
-                'telefono' => 'required|min:9|max:9'
+                'dni' => 'required|min:8|max:8|unique:doctors,dni,' . $id . '|unique:users,dni|unique:administrators,dni',
+                'telefono' => 'required|min:9|max:9',
+                'especialidad_id' => 'required'
             ];
 
             $errors = ValidationHelper::validate($request, $rules);
-        
-            if($errors){
+
+            if ($errors) {
                 return $errors;
             }
 
-            $user->nombre = $request->nombre;
-            $user->correo = $request->correo;
-            $user->password = Hash::make($request->password);
-            $user->direccion = $request->direccion;
-            $user->dni = $request->dni;
-            $user->telefono = $request->telefono;
-            $user->save();
+            $specialty = Specialty::find($request->especialidad_id);
+
+            if (!$specialty) {
+                return response()->json([
+                    'status' => 'false',
+                    'message' => 'Especialidad no encontrada'
+                ], 404);
+            }
+
+            $doctor->nombre = $request->nombre;
+            $doctor->apellido = $request->apellido;
+            $doctor->correo = $request->correo;
+            $doctor->password = Hash::make($request->password);
+            $doctor->direccion = $request->direccion;
+            $doctor->dni = $request->dni;
+            $doctor->telefono = $request->telefono;
+            $doctor->especialidad_id = $request->especialidad_id;
+            $doctor->save();
 
             return response()->json([
                 'status' => 'true',
-                'message' => 'Datos actualizados correctamente',
-                'user' => $user
+                'message' => 'Doctor: ' . $doctor->nombre . ' actualizado exitosamente',
+                'doctor' => $doctor
             ], 200);
         } catch (Exception $error) {
             return response()->json([
@@ -155,21 +184,21 @@ class UserController extends Controller
     public function destroy($id)
     {
         try {
-            $user = User::find($id);
+            $doctor = Doctor::find($id);
 
-            if (!$user) {
+            if (!$doctor) {
                 return response()->json([
                     'status' => 'false',
-                    'message' => 'Usuario no encontrado'
+                    'message' => 'Doctor no encontrado'
                 ], 404);
             }
 
-            $user->delete();
+            $doctor->delete();
 
             return response()->json([
                 'status' => 'true',
-                'message' => 'Usuario: ' . $user->nombre . ' eliminado correctamente',
-                'user' => $user
+                'message' => 'Doctor eliminado exitosamente',
+                'doctor' => $doctor
             ], 200);
         } catch (Exception $error) {
             return response()->json([

@@ -10,7 +10,7 @@ class Specialty extends Model
     use HasFactory;
     protected $table = 'specialties';
     protected $primaryKey = 'id';
-    protected $fillable = ['id','nombre', 'descripcion','create_at','update_at'];
+    protected $fillable = ['id','nombre', 'descripcion','img','create_at','update_at'];
 
      /**
      * Indicates if the IDs are auto-incrementing.
