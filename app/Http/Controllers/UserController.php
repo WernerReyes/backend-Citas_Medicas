@@ -17,8 +17,19 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $limitUsers = $request->input('limit', 10);
+        $seach = $request->input('search', '');
         try {
-            $users = User::limit($limitUsers)->get();
+            $query = User::query();
+
+            if($seach){
+                $query->where('nombre', 'LIKE', '%' . $seach . '%');
+            }
+            
+            // Solo trae los usuarios activos
+            $query->where('activo', true);
+            
+            $users = $query->limit($limitUsers)->get();
+
             return response()->json([
                 'status' => 'true',
                 'message' => 'Consulta exitosa',
@@ -91,7 +102,7 @@ class UserController extends Controller
 
             return response()->json([
                 'status' => 'true',
-                'message' => 'Cuenta creada correctamente',
+                'message' => $user->nombre . ' tu cuenta fue creada correctamente',
                 'user' => $user
             ], 200);
         } catch (Exception $error) {
@@ -120,7 +131,6 @@ class UserController extends Controller
                 'nombre' => 'required',
                 'apellido' => 'required',
                 'correo' => 'required|email|unique:users,correo,' . $id . '|unique:doctors,correo|unique:administrators,correo',
-                'password' => ['required', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/'],
                 'dni' => 'required|min:8|max:8|unique:users,dni,' . $id . '|unique:doctors,dni|unique:administrators,dni',
                 'telefono' => 'required|min:9|max:9'
             ];
@@ -132,8 +142,8 @@ class UserController extends Controller
             }
 
             $user->nombre = $request->nombre;
+            $user->apellido = $request->apellido;
             $user->correo = $request->correo;
-            $user->password = Hash::make($request->password);
             $user->direccion = $request->direccion;
             $user->dni = $request->dni;
             $user->telefono = $request->telefono;
@@ -164,7 +174,8 @@ class UserController extends Controller
                 ], 404);
             }
 
-            $user->delete();
+            $user->activo = false;
+            $user->save();
 
             return response()->json([
                 'status' => 'true',

@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('direccion')->nullable();
             $table->string('telefono');
             $table->string('img')->nullable();
+            $table->boolean('activo')->default(true);
             $table->unsignedBigInteger('rol_id')->default(3);
             $table->uuid('especialidad_id');
 
@@ -35,6 +36,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('medical_appointments');
+        Schema::dropIfExists('doctors');
     }
 };

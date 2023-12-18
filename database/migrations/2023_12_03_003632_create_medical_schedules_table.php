@@ -11,12 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('specialties', function (Blueprint $table) {
+        Schema::create('medical_schedules', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('nombre')->unique();
-            $table->string('descripcion');
-            $table->string('img')->nullable();
+            $table->string('fecha');
+            $table->time('hora_inicio');
+            $table->time('hora_fin');
+            $table->uuid('doctor_id');
+            $table->boolean('disponible')->default(true);
             $table->boolean('activo')->default(true);
+
+            $table->foreign('doctor_id')->references('id')->on('doctors');
             $table->timestamps();
         });
     }
@@ -26,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('specialties');
+        Schema::dropIfExists('medical_schedules');
     }
 };

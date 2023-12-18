@@ -3,6 +3,10 @@
 use App\Http\Controllers\AdministratorControlller;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DoctorController;
+use App\Http\Controllers\MedicalAppintmentHistoryController;
+use App\Http\Controllers\MedicalAppointmentController;
+use App\Http\Controllers\MedicalScheduleController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SpecialtyController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\UserController;
@@ -23,8 +27,8 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('/auth')->group(function () {
   Route::post('/login', [AuthController::class, 'login']);
   Route::post('/login-personal-clinica', [AuthController::class, 'loginPersonalClinica']);
+  Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth.sanctum');
   Route::get('/verificar-token', [AuthController::class, 'verificarToken'])->middleware('auth.sanctum');
-  Route::get('/renovar-token', [AuthController::class, 'renovarToken'])->middleware('auth.sanctum');
 });
 
 Route::prefix('/user')->group(function () {
@@ -51,15 +55,24 @@ Route::prefix('/administrator')->group(function () {
   Route::delete('/{id}',[AdministratorControlller::class, 'destroy'])->middleware('auth.sanctum');
 });
 
+Route::prefix('/schedule')->group(function () {
+  Route::get('/', [MedicalScheduleController::class, 'index']);
+  Route::get('/{id}', [MedicalScheduleController::class, 'show']);
+  Route::post('/', [MedicalScheduleController::class, 'store']);
+  Route::put('/{id}',[MedicalScheduleController::class, 'update']);
+  Route::delete('/{id}',[MedicalScheduleController::class, 'destroy']);
+});
+
 Route::prefix('/medical-appointment')->group(function () {
   Route::get('/', [MedicalAppointmentController::class, 'index']);
   Route::get('/{id}', [MedicalAppointmentController::class, 'show']);
   Route::post('/', [MedicalAppointmentController::class, 'store']);
   Route::put('/{id}',[MedicalAppointmentController::class, 'update'])->middleware('auth.sanctum');
-  Route::delete('/{id}',[MedicalAppointmentController::class, 'destroy'])->middleware('auth.sanctum');
+  Route::put('/complete/{id}',[MedicalAppointmentController::class, 'complete'])->middleware('auth.sanctum');
+  Route::delete('/{id}/{idSchedule}',[MedicalAppointmentController::class, 'destroy'])->middleware('auth.sanctum');
 });
 
-Route::prefix('/especialty')->group(function () {
+Route::prefix('/specialty')->group(function () {
   Route::get('/', [SpecialtyController::class, 'index']);
   Route::get('/{id}', [SpecialtyController::class, 'show']);
   Route::post('/', [SpecialtyController::class, 'store']);
@@ -68,9 +81,27 @@ Route::prefix('/especialty')->group(function () {
 });
 
 Route::prefix('/upload')->middleware('auth.sanctum')->group(function(){
- Route::get('/{id}', [UploadController::class, 'show']);
- Route::post('/{folder}/{model}/{id}', [UploadController::class, 'store']);
- Route::put('/{folder}/{model}/{id}', [UploadController::class, 'update']);
+ Route::post('/{folder}/{id}/{model}', [UploadController::class, 'store']);
+ Route::put('/{folder}/{id}/{model}', [UploadController::class, 'update']);
 });
+
+Route::prefix('/payment')->group(function () {
+  Route::get('/', [PaymentController::class, 'index']);
+  Route::get('/earnings', [PaymentController::class, 'earnings']);
+  Route::get('/{id}', [PaymentController::class, 'show']);
+  Route::post('/', [PaymentController::class, 'store']);
+  // Route::put('/{id}',[PaymentController::class, 'update'])->middleware('auth.sanctum');
+  // Route::delete('/{id}',[PaymentController::class, 'destroy'])->middleware('auth.sanctum');
+});
+
+Route::prefix('/medical-appointment-history')->group(function () {
+  Route::get('/', [MedicalAppintmentHistoryController::class, 'index']);
+  Route::get('/{id}', [MedicalAppintmentHistoryController::class, 'show']);
+  // Route::post('/', [MedicalAppintmentHistoryController::class, 'store']);
+  // Route::put('/{id}',[MedicalAppintmentHistoryController::class, 'update'])->middleware('auth.sanctum');
+  // Route::delete('/{id}',[MedicalAppintmentHistoryController::class, 'destroy'])->middleware('auth.sanctum');
+});
+
+
 
 

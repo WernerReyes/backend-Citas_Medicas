@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 
 class UploadController extends Controller
 {
-    public function store(Request $request, $folder, $model, $id)
+    public function store(Request $request, $folder, $id, $model)
     {
         // Obtenemos la imagen
         $file = $request->file('file');
@@ -29,7 +29,7 @@ class UploadController extends Controller
             'document' => ['file' => 'required|mimes:pdf|max:2048']
         ];
 
-        $validationRules = ($folder === 'images') ? $rules['image'] : $rules['document'];
+        $validationRules = ($model === 'images') ? $rules['image'] : $rules['document'];
         $response = ValidationHelper::validate($request, $validationRules);
 
         if ($response) {
@@ -38,10 +38,12 @@ class UploadController extends Controller
 
         try {
             // Obtenemos el modelo [user, specialty] que deseamos cargar el folder
-            $modelo = FoldersHelper::modeloFolders($id, $model);
+            $modelo = FoldersHelper::modeloFolders($id, $folder);
+
+            Log::info($modelo);
 
             // Nombre del directorio basado en el id del modelo
-            $directory = 'uploads/' . $model . '/' . $modelo->id . '/' . $folder;
+            $directory = 'uploads/' . $folder . '/' . $modelo->id . '/' . $model;
 
             // $uploadedFile = Cloudinary::upload($file->getRealPath(), [
             //     'folder' => $directory,
@@ -59,6 +61,10 @@ class UploadController extends Controller
                 'message' => ($folder === 'images' ? 'Imagen subida' : 'Documento subido') . ' exitosamente',
                 'user' => $modelo
             ], 200);
+
+            $response->header('Cross-Origin-Resource-Policy', 'same-site');
+
+            return $response;
         } catch (Exception $error) {
             return response()->json([
                 'status' => 'false',
@@ -67,10 +73,12 @@ class UploadController extends Controller
         }
     }
 
-    public function update(Request $request, $folder, $model, $id)
+    public function update(Request $request, $folder, $id, $model)
     {
         // Obtenemos la imagen
         $file = $request->file('file');
+
+        Log::info($file . 'eDITAR');
 
         if (!$file) {
             return response()->json([
@@ -84,7 +92,7 @@ class UploadController extends Controller
             'document' => ['file' => 'required|mimes:pdf|max:2048']
         ];
 
-        $validationRules = ($folder === 'images') ? $rules['image'] : $rules['document'];
+        $validationRules = ($model === 'images') ? $rules['image'] : $rules['document'];
 
         $response = ValidationHelper::validate($request, $validationRules);
 
@@ -94,10 +102,10 @@ class UploadController extends Controller
 
         try {
             // Obtenemos el modelo [user, specialty] que deseamos cargar el folder
-            $modelo = FoldersHelper::modeloFolders($id, $model);
+            $modelo = FoldersHelper::modeloFolders($id, $folder);
 
             // Nombre del directorio basado en el id del modelo
-            $directory = 'uploads/' . $model . '/' . $modelo->id . '/' . $folder;
+            $directory = 'uploads/' . $folder . '/' . $modelo->id . '/' . $model;
 
             if ($modelo->img) {
                 $public_id = pathinfo($modelo->img, PATHINFO_FILENAME);

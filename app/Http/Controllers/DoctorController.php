@@ -17,8 +17,35 @@ class DoctorController extends Controller
     public function index(Request $request)
     {
         $limitDoctors = $request->input('limit', 10);
+        $idSpecialty = $request->input('especialidad_id', null);
+        $seach = $request->input('search', '');
         try {
-            $doctors = Doctor::limit($limitDoctors)->get();
+            $query = Doctor::query();
+
+            if ($idSpecialty) {
+                $query->where('especialidad_id', $idSpecialty);
+            }
+
+            if($seach){
+                $query->where('nombre', 'LIKE', '%' . $seach . '%');
+            }
+
+            // Solo trae los doctores activos
+            $query->where('activo', true);
+
+            // Solo trae los doctores cuya especialidad tambien este activa
+            $query->whereHas('specialy', function ($query) {
+                $query->where('activo', true);
+            });
+
+
+            $doctors = $query->limit($limitDoctors)->get();
+
+            $doctors->load('specialy');
+
+            // Ocultamos los campos que no queremos mostrar
+            unset($doctors->especialidad_id);
+
             return response()->json([
                 'status' => 'true',
                 'message' => 'Consulta exitosa',
@@ -44,6 +71,8 @@ class DoctorController extends Controller
                     'message' => 'Doctor no encontrado'
                 ], 404);
             }
+
+            $doctor->load('specialy');
 
             return response()->json([
                 'status' => 'true',
@@ -106,6 +135,8 @@ class DoctorController extends Controller
 
             $doctor->save();
 
+            $doctor->load('specialy');
+
             return response()->json([
                 'status' => 'true',
                 'message' => 'Cuenta creada correctamente',
@@ -137,7 +168,6 @@ class DoctorController extends Controller
                 'nombre' => 'required',
                 'apellido' => 'required',
                 'correo' => 'required|email|unique:doctors,correo,' . $id . '|unique:users,correo|unique:administrators,correo',
-                'password' => ['required', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/'],
                 'dni' => 'required|min:8|max:8|unique:doctors,dni,' . $id . '|unique:users,dni|unique:administrators,dni',
                 'telefono' => 'required|min:9|max:9',
                 'especialidad_id' => 'required'
@@ -161,12 +191,13 @@ class DoctorController extends Controller
             $doctor->nombre = $request->nombre;
             $doctor->apellido = $request->apellido;
             $doctor->correo = $request->correo;
-            $doctor->password = Hash::make($request->password);
             $doctor->direccion = $request->direccion;
             $doctor->dni = $request->dni;
             $doctor->telefono = $request->telefono;
             $doctor->especialidad_id = $request->especialidad_id;
             $doctor->save();
+
+            $doctor->load('specialy');
 
             return response()->json([
                 'status' => 'true',
@@ -193,7 +224,8 @@ class DoctorController extends Controller
                 ], 404);
             }
 
-            $doctor->delete();
+            $doctor->activo = false;
+            $doctor->save();
 
             return response()->json([
                 'status' => 'true',

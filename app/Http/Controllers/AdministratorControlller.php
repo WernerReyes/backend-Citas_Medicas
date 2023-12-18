@@ -8,7 +8,7 @@ use App\Models\Administrator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Exception;
-
+use Illuminate\Support\Facades\Log;
 
 class AdministratorControlller extends Controller
 {
@@ -16,7 +16,13 @@ class AdministratorControlller extends Controller
     {
         $limitAdministrators = $request->input('limit', 10);
         try {
-            $administrators = Administrator::limit($limitAdministrators)->get();
+
+            $query = Administrator::query();
+
+            // Veificamos si esta activo 
+            $query->where('activo', $request->activo);
+
+            $administrators = $query->limit($limitAdministrators)->get();
             return response()->json([
                 'status' => 'true',
                 'message' => 'Consulta exitosa',
@@ -68,12 +74,12 @@ class AdministratorControlller extends Controller
         ];
 
         $errors = ValidationHelper::validate($request, $rules);
-        
-        if($errors){
+
+        if ($errors) {
             return $errors;
         }
         try {
-          
+
             $administrator = Administrator::create([
                 'id' => (string) Str::uuid(),
                 'nombre' => $request->nombre,
@@ -104,43 +110,52 @@ class AdministratorControlller extends Controller
     public function update(Request $request, $id)
     {
 
+
         try {
+
             $administrator = Administrator::find($id);
+
+            Log::info($administrator . ' id' . $id);
 
             if (!$administrator) {
                 return response()->json([
                     'status' => 'false',
-                    'message' => 'Usuario no encontrado'
+                    'message' => 'Administrador no encontrado'
                 ], 404);
             }
 
             $rules = [
                 'nombre' => 'required',
                 'apellido' => 'required',
-                'correo' => 'required|email|unique:administrator,correo,' . $id . '|unique:doctors,correo|unique:users,correo',
-                'password' => ['required', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/'],
-                'dni' => 'required|min:8|max:8|unique:administrator,dni,' . $id . '|unique:doctors,dni|unique:users,dni',
+                'correo' => 'required|email|unique:administrators,correo,' . $id . '|unique:doctors,correo|unique:users,correo',
+                // 'password' => ['required', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/'],
+                'dni' => 'required|min:8|max:8|unique:administrators,dni,' . $id . '|unique:doctors,dni|unique:users,dni',
                 'telefono' => 'required|min:9|max:9'
             ];
 
             $errors = ValidationHelper::validate($request, $rules);
-        
-            if($errors){
+
+            if ($errors) {
                 return $errors;
             }
 
             $administrator->nombre = $request->nombre;
+            $administrator->apellido = $request->apellido;
             $administrator->correo = $request->correo;
-            $administrator->password = Hash::make($request->password);
+            // $administrator->password = Hash::make($request->password);
             $administrator->direccion = $request->direccion;
             $administrator->dni = $request->dni;
             $administrator->telefono = $request->telefono;
-            $administrator->save();
+            $saved = $administrator->save();
+
+            if (!$saved) {
+                Log::info('No se pudo actualizar el administrador');
+            }
 
             return response()->json([
                 'status' => 'true',
                 'message' => 'Datos actualizados correctamente',
-                'adm$administrator' => $administrator
+                'administrator' => $administrator
             ], 200);
         } catch (Exception $error) {
             return response()->json([
@@ -162,7 +177,8 @@ class AdministratorControlller extends Controller
                 ], 404);
             }
 
-            $administrator->delete();
+            $administrator->activo = false;
+            $administrator->save();
 
             return response()->json([
                 'status' => 'true',
@@ -176,5 +192,4 @@ class AdministratorControlller extends Controller
             ], 500);
         }
     }
-
 }

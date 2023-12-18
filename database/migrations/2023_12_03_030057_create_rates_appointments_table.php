@@ -11,13 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('specialties', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->string('nombre')->unique();
+        Schema::create('rates_appointments', function (Blueprint $table) {
+            $table->id();
+            $table->decimal('monto', 6, 2);
             $table->string('descripcion');
-            $table->string('img')->nullable();
-            $table->boolean('activo')->default(true);
-            $table->timestamps();
         });
     }
 
@@ -26,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('specialties');
+        Schema::dropIfExists('rates_appointments');
     }
 };

@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('dni')->unique();
             $table->string('telefono');
             $table->string('img')->nullable();
+            $table->boolean('activo')->default(true);
             $table->unsignedBigInteger('rol_id')->default(1);
             $table->timestamps();
 

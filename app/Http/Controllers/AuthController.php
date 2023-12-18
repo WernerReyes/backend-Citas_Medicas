@@ -21,6 +21,14 @@ class AuthController extends Controller
                 // Accedemos al rol de usuarios
                 $userRole = Role::find($user->rol_id);
 
+                // Verificar si el usuario está activo
+                if (!$user->activo) {
+                    return response()->json([
+                        'status' => 'false',
+                        'message' => 'El usuario no está activo'
+                    ], 401);
+                }
+
                 // Si el rol es USER_ROLE, generamos un nuevo token
                 if ($userRole && $userRole->nombre === 'USER_ROLE') {
                     $token = TokenHelper::generateToken($user);
@@ -58,6 +66,14 @@ class AuthController extends Controller
               
                 // Accedemos al rol de usuarios
                 $personalRole = Role::find($personal->rol_id);
+
+                // Verificar si el usuario está activo
+                if (!$personal->activo) {
+                    return response()->json([
+                        'status' => 'false',
+                        'message' => 'El usuario no está activo'
+                    ], 401);
+                }
     
                 // Si el rol es USER_ROLE, generamos un nuevo token
                 if ($personalRole && ($personalRole->nombre === 'MEDICAL_ROLE' || $personalRole->nombre === 'ADMIN_ROLE')) {
@@ -91,23 +107,21 @@ class AuthController extends Controller
 
     public function verificarToken(Request $request)
     {
-        $user = $request->user;
+        $user = $request->user->makeHidden('password');
         return response()->json([
             'status' => 'true',
-            'user' => $user
+            'user' => $user,
+            'rol' => $user->rol->nombre
         ], 200);
     }
 
-    public function renovarToken(Request $request)
+    public function logout(Request $request)
     {
-        $user = $request->user;
-        Log::info($user);
-        $user->tokens()->delete();
-        $token = TokenHelper::generateToken($user);
+        $request->user->tokens()->delete();
         return response()->json([
             'status' => 'true',
-            'token' => $token,
-            'user' => $user
+            'message' => 'Sesión cerrada correctamente'
         ], 200);
     }
+
 }

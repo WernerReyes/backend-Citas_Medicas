@@ -13,15 +13,20 @@ return new class extends Migration
     {
         Schema::create('medical_appointments', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->date('fecha');
+            $table->string('fecha');
             $table->string('sede');
             $table->string('estado')->default('pendiente');
-            $table->string('descripcion')->nullable();
+            $table->string('estado_medico')->nullable();
+            // $table->unsignedBigInteger('rate_appointment_id')->default(1);
+            $table->uuid('paciente_id');
             $table->uuid('doctor_id');
-            $table->uuid('user_id');
+            $table->uuid('schedule_id');
+            $table->boolean('activo')->default(true);
 
+            $table->foreign('paciente_id')->references('id')->on('users');
             $table->foreign('doctor_id')->references('id')->on('doctors');
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('schedule_id')->references('id')->on('medical_schedules');
+            // $table->foreign('rate_appointment_id')->references('id')->on('rates_appointments');
             $table->timestamps();
         });
     }

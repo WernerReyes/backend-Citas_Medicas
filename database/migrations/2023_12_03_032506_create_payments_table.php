@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('tipo_pago');
-            $table->decimal('monto', 8, 2);
-            $table->date('fecha_pago');
-            $table->uuid('cita_id');
+            $table->string('tipo_pago')->default('tarjeta');
+            $table->uuid('medical_appointment_id');
+            $table->unsignedBigInteger('rate_appointment_id')->default(1);
 
-            $table->foreign('cita_id')->references('id')->on('medical_appointments');
+            $table->foreign('medical_appointment_id')->references('id')->on('medical_appointments');
+            $table->foreign('rate_appointment_id')->references('id')->on('rates_appointments');
             $table->timestamps();
         });
     }
